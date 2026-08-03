@@ -1,5 +1,6 @@
 package com.ariv.photoshare.follow.service;
 
+import com.ariv.photoshare.cache.service.CacheService;
 import com.ariv.photoshare.follow.dto.FollowResponse;
 import com.ariv.photoshare.follow.entity.FollowEntity;
 import com.ariv.photoshare.follow.repository.FollowRepository;
@@ -18,6 +19,9 @@ public class FollowService {
 
     @Inject
     FollowRepository repository;
+
+    @Inject
+    CacheService cacheService;
 
     @Transactional
     public FollowResponse follow(
@@ -45,6 +49,8 @@ public class FollowService {
         entity.createdAt = Instant.now();
 
         repository.persist(entity);
+
+        cacheService.evictFeed(followerId);
 
         return new FollowResponse(
                 entity.id,

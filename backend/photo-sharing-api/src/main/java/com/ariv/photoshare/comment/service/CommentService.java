@@ -1,5 +1,6 @@
 package com.ariv.photoshare.comment.service;
 
+import com.ariv.photoshare.cache.service.CacheService;
 import com.ariv.photoshare.comment.dto.CommentResponse;
 import com.ariv.photoshare.comment.dto.CommentsResponse;
 import com.ariv.photoshare.comment.dto.CreateCommentRequest;
@@ -18,6 +19,9 @@ public class CommentService {
     @Inject
     CommentRepository repository;
 
+    @Inject
+    CacheService cacheService;
+
     @Transactional
     public CommentResponse create(
             UUID postId,
@@ -33,6 +37,8 @@ public class CommentService {
         entity.createdAt = Instant.now();
 
         repository.persist(entity);
+
+        cacheService.evictFeed(request.userId());
 
         return new CommentResponse(
                 entity.id,

@@ -1,5 +1,6 @@
 package com.ariv.photoshare.like.service;
 
+import com.ariv.photoshare.cache.service.CacheService;
 import com.ariv.photoshare.like.dto.LikeResponse;
 import com.ariv.photoshare.like.entity.LikeEntity;
 import com.ariv.photoshare.like.repository.LikeRepository;
@@ -17,6 +18,9 @@ public class LikeService {
 
     @Inject
     LikeRepository repository;
+
+    @Inject
+    CacheService cacheService;
 
     @Transactional
     public LikeResponse like(
@@ -36,6 +40,8 @@ public class LikeService {
         entity.createdAt = Instant.now();
 
         repository.persist(entity);
+
+        cacheService.evictFeed(userId);
 
         return new LikeResponse(
                 entity.id,
@@ -59,6 +65,8 @@ public class LikeService {
         }
 
         repository.delete(entity);
+        // Cache Invalidation
+        cacheService.evictFeed(userId);
     }
 
     public long countLikes(UUID postId) {

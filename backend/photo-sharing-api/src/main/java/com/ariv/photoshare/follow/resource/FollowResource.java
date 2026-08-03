@@ -1,5 +1,6 @@
 package com.ariv.photoshare.follow.resource;
 
+import com.ariv.photoshare.cache.service.CacheService;
 import com.ariv.photoshare.follow.dto.FollowRequest;
 import com.ariv.photoshare.follow.dto.FollowResponse;
 import com.ariv.photoshare.follow.service.FollowService;
@@ -26,7 +27,6 @@ public class FollowResource {
             UUID userId,
 
             FollowRequest request) {
-
         return followService.follow(
                 request.followerId(),
                 userId

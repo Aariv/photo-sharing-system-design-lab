@@ -1,5 +1,6 @@
 package com.ariv.photoshare.post.service;
 
+import com.ariv.photoshare.cache.service.CacheService;
 import com.ariv.photoshare.post.dto.CreatePostRequest;
 import com.ariv.photoshare.post.dto.CreatePostResponse;
 import com.ariv.photoshare.post.dto.PostResponse;
@@ -19,6 +20,9 @@ public class PostService {
     @Inject
     private PostRepository repository;
 
+    @Inject
+    CacheService cacheService;
+
     @Transactional
     public CreatePostResponse create(
             CreatePostRequest request) {
@@ -32,6 +36,8 @@ public class PostService {
         post.createdAt = Instant.now();
 
         repository.persist(post);
+
+        cacheService.evictFeed(request.userId());
 
         return new CreatePostResponse(post.id);
     }
