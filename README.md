@@ -52,6 +52,6 @@ http://localhost:8080/q/swagger-ui
 ## Roadmap
 
 ✅ Phase-02 Redis Cache
-- Phase-03 Kafka
-- Phase-04 Notifications
+✅ Phase-03 Kafka
+✅ Phase-04 Notifications
 - Phase-05 Kubernetes
