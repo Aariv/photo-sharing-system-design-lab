@@ -6,7 +6,7 @@
 
 ## Phase-02
 
-Redis Cache
+✅ Redis Cache
 
 ## Phase-03
 
@@ -14,11 +14,11 @@ MinIO
 
 ## Phase-04
 
-Kafka
+✅ Kafka
 
 ## Phase-05
 
-Notifications
+✅ Notifications
 
 ## Phase-06
 
