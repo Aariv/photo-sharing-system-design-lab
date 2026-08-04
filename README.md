@@ -67,3 +67,5 @@ http://localhost:8080/q/swagger-ui
 - Micrometer 
 - Prometheus
 - Grafana
+- Custom Metrics
+- Dashboards
