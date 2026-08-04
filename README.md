@@ -60,9 +60,10 @@ http://localhost:8080/q/swagger-ui
 
 - Kafka Producer
 - Kafka Consumer
-
-✅ Phase-04 Notifications
-
 - Notifications
 
-Phase-05 Kubernetes
+✅ Phase-04 
+
+- Micrometer 
+- Prometheus
+- Grafana

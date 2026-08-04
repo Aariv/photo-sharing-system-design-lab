@@ -5,6 +5,7 @@ import com.ariv.photoshare.comment.repository.CommentRepository;
 import com.ariv.photoshare.feed.dto.FeedItemResponse;
 import com.ariv.photoshare.feed.dto.FeedResponse;
 import com.ariv.photoshare.like.repository.LikeRepository;
+import com.ariv.photoshare.metrics.FeedMetrics;
 import com.ariv.photoshare.post.repository.PostRepository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,11 +34,14 @@ public class FeedService {
     @Inject
     ObjectMapper objectMapper;
 
+    @Inject
+    FeedMetrics metrics;
+
     public FeedResponse getFeed(
             UUID userId,
             int page,
             int size) {
-
+        metrics.request();
         String cacheKey =
                 CacheKeys.feed(userId);
 
@@ -47,6 +51,7 @@ public class FeedService {
                     cache().get(cacheKey);
 
             if (cached != null) {
+                metrics.hit();
 
                 System.out.println(
                         "CACHE HIT -> " + cacheKey);
@@ -55,7 +60,7 @@ public class FeedService {
                         cached,
                         FeedResponse.class);
             }
-
+            metrics.miss();
             System.out.println(
                     "CACHE MISS -> " + cacheKey);
 

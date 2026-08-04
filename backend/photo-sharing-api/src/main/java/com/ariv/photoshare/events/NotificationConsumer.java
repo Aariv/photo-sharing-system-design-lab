@@ -1,5 +1,6 @@
 package com.ariv.photoshare.events;
 
+import com.ariv.photoshare.metrics.KafkaMetrics;
 import com.ariv.photoshare.notifications.entity.NotificationEntity;
 import com.ariv.photoshare.notifications.repository.NotificationRepository;
 import com.ariv.photoshare.post.entity.PostEntity;
@@ -25,6 +26,9 @@ public class NotificationConsumer {
 
     @Inject
     UserRepository userRepository;
+
+    @Inject
+    KafkaMetrics metrics;
 
     @Transactional
     @Incoming("post-liked-in")
@@ -62,6 +66,7 @@ public class NotificationConsumer {
         repository.persist(
                 notification);
 
+        metrics.notificationCreated();
         System.out.println(
                 "NOTIFICATION CREATED -> "
                 + notification.message);

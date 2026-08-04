@@ -54,5 +54,22 @@ services:
     ports:
       - "9092:9092"
       - "9644:9644"
+
+  prometheus:
+    image: prom/prometheus
+    container_name: photoshare-prometheus
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: photoshare-grafana
+
+    ports:
+      - "3000:3000"
+
 volumes:
   postgres-data:
