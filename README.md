@@ -75,3 +75,10 @@ http://localhost:8080/q/swagger-ui
 - Feed Load Testing
 - Performance Benchmarking
 - k6 Integration
+
+✅ Phase-06
+- MinIO Integration
+- Upload API
+- Bucket Management
+- Presigned URLs
+- Feed/Timeline/Post Image Integration

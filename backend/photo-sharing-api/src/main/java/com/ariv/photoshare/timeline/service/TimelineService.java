@@ -5,6 +5,7 @@ import com.ariv.photoshare.feed.dto.FeedItemResponse;
 import com.ariv.photoshare.feed.dto.FeedResponse;
 import com.ariv.photoshare.like.repository.LikeRepository;
 import com.ariv.photoshare.post.repository.PostRepository;
+import com.ariv.photoshare.upload.service.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -21,6 +22,9 @@ public class TimelineService {
 
     @Inject
     CommentRepository commentRepository;
+
+    @Inject
+    FileStorageService storageService;
 
     public FeedResponse getTimeline(
             UUID userId,
@@ -50,10 +54,18 @@ public class TimelineService {
                                     commentRepository
                                             .countComments(post.id);
 
+                            String imageUrl = null;
+                            try {
+                                imageUrl = storageService
+                                        .generatePresignedUrl(post.imageUrl);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+
                             return new FeedItemResponse(
                                     post.id,
                                     post.userId,
-                                    post.imageUrl,
+                                    imageUrl,
                                     post.caption,
                                     post.createdAt,
                                     likesCount,
@@ -69,4 +81,5 @@ public class TimelineService {
                 size
         );
     }
+
 }

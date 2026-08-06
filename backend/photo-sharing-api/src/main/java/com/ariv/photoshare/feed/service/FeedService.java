@@ -8,6 +8,7 @@ import com.ariv.photoshare.like.repository.LikeRepository;
 import com.ariv.photoshare.metrics.FeedMetrics;
 import com.ariv.photoshare.post.repository.PostRepository;
 
+import com.ariv.photoshare.upload.service.FileStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.ValueCommands;
@@ -36,6 +37,9 @@ public class FeedService {
 
     @Inject
     FeedMetrics metrics;
+
+    @Inject
+    FileStorageService storageService;
 
     public FeedResponse getFeed(
             UUID userId,
@@ -122,13 +126,21 @@ public class FeedService {
                                     commentRepository
                                             .countComments(post.id);
 
+                            String imageUrl = null;
+                            try {
+                                imageUrl = storageService
+                                        .generatePresignedUrl(post.imageUrl);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+
                             return new FeedItemResponse(
 
                                     post.id,
 
                                     post.userId,
 
-                                    post.imageUrl,
+                                    imageUrl,
 
                                     post.caption,
 
@@ -154,4 +166,5 @@ public class FeedService {
     private ValueCommands<String, String> cache() {
         return redisDataSource.value(String.class);
     }
+
 }

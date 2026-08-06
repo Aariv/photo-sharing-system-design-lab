@@ -6,6 +6,7 @@ import com.ariv.photoshare.post.dto.CreatePostResponse;
 import com.ariv.photoshare.post.dto.PostResponse;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
+import com.ariv.photoshare.upload.service.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,9 @@ public class PostService {
 
     @Inject
     CacheService cacheService;
+
+    @Inject
+    FileStorageService storageService;
 
     @Transactional
     public CreatePostResponse create(
@@ -51,12 +55,21 @@ public class PostService {
             throw new NotFoundException();
         }
 
+        String imageUrl = null;
+        try {
+            imageUrl = storageService
+                    .generatePresignedUrl(post.imageUrl);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return new PostResponse(
                 post.id,
                 post.userId,
-                post.imageUrl,
+                imageUrl,
                 post.caption,
                 post.createdAt
         );
     }
+
 }
