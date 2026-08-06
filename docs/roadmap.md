@@ -14,11 +14,11 @@ MinIO
 
 ## Phase-04
 
-✅ Kafka
+✅ Kafka, Notifications
 
 ## Phase-05
 
-✅ Notifications
+✅ Initial Load Testing
 
 ## Phase-06
 
