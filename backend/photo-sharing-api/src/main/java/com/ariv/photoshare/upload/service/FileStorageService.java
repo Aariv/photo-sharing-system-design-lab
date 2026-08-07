@@ -5,6 +5,7 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.Http;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
@@ -101,6 +102,7 @@ public class FileStorageService {
         return filename.substring(index);
     }
 
+    @WithSpan("generate-presigned-url")
     public String generatePresignedUrl(
             String imageUrl)
             throws Exception {

@@ -10,6 +10,7 @@ import com.ariv.photoshare.post.repository.PostRepository;
 
 import com.ariv.photoshare.upload.service.FileStorageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.ValueCommands;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,6 +42,7 @@ public class FeedService {
     @Inject
     FileStorageService storageService;
 
+    @WithSpan("feed-service")
     public FeedResponse getFeed(
             UUID userId,
             int page,
@@ -163,7 +165,8 @@ public class FeedService {
         );
     }
 
-    private ValueCommands<String, String> cache() {
+    @WithSpan("redis-cache-check")
+    public ValueCommands<String, String> cache() {
         return redisDataSource.value(String.class);
     }
 

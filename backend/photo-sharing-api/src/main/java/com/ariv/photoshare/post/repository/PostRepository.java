@@ -1,6 +1,7 @@
 package com.ariv.photoshare.post.repository;
 
 import com.ariv.photoshare.post.entity.PostEntity;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public class PostRepository
         implements PanacheRepositoryBase<PostEntity, UUID> {
 
+    @WithSpan("feed-query")
     public List<PostEntity> findFeed(
             UUID userId,
             int page,

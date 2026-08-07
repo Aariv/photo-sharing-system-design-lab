@@ -85,3 +85,13 @@ http://localhost:8080/q/swagger-ui
 
 ✅ Phase-07
 - Monolith to Microservices documentation
+
+✅ Phase-08: Distributed Tracing
+- OpenTelemetry
+- Jaeger
+- HTTP Tracing
+- Feed Tracing
+- Redis Tracing
+- Kafka Producer Tracing
+- Kafka Consumer Tracing
+- Notification Tracing

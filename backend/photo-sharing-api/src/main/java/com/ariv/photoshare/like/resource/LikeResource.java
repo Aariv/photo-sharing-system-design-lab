@@ -3,6 +3,7 @@ package com.ariv.photoshare.like.resource;
 import com.ariv.photoshare.like.dto.LikeRequest;
 import com.ariv.photoshare.like.dto.LikeResponse;
 import com.ariv.photoshare.like.service.LikeService;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.*;
@@ -21,6 +22,7 @@ public class LikeResource {
 
     @POST
     @Path("/{postId}/like")
+    @WithSpan("like-post")
     public LikeResponse like(
             @PathParam("postId")
             UUID postId,

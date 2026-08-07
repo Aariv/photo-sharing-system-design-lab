@@ -1,6 +1,7 @@
 package com.ariv.photoshare.events;
 
 import com.ariv.photoshare.metrics.KafkaMetrics;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import jakarta.inject.Inject;
@@ -17,6 +18,7 @@ public class LikeEventProducer {
     @Channel("post-liked")
     Emitter<PostLikedEvent> emitter;
 
+    @WithSpan("publish-post-liked-event")
     public void publish(
             PostLikedEvent event) {
 

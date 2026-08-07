@@ -7,6 +7,7 @@ import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
 import com.ariv.photoshare.user.entity.UserEntity;
 import com.ariv.photoshare.user.repository.UserRepository;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -32,6 +33,7 @@ public class NotificationConsumer {
 
     @Transactional
     @Incoming("post-liked-in")
+    @WithSpan("notification-consumer")
     public void consume(
             PostLikedEvent event) {
 
