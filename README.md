@@ -95,3 +95,9 @@ http://localhost:8080/q/swagger-ui
 - Kafka Producer Tracing
 - Kafka Consumer Tracing
 - Notification Tracing
+
+✅ Phase-09 Kubernetes Foundations
+- Containerization
+- Kubernetes Cluster
+- Kubernetes Deployment
+- Kubernetes Service

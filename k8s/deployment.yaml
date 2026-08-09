@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photoshare-api
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: photoshare-api
+
+  template:
+    metadata:
+      labels:
+        app: photoshare-api
+
+    spec:
+      containers:
+        - name: photoshare-api
+          image: photoshare-api:v2
+
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://host.docker.internal:5432/photoshare
+
+            - name: DB_USERNAME
+              value: postgres
+
+            - name: DB_PASSWORD
+              value: postgres
+
+            - name: MINIO_URL
+              value: http://host.docker.internal:9000
+
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: host.docker.internal:9092
