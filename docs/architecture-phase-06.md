@@ -1,3 +1,3 @@
-# Phase-04 Architecture
+# Phase-06 Architecture
 
-![Phase 01 Architecture](images/phase-06-architecture.png)
+![Phase 06 Architecture](images/phase-06-architecture.png)
