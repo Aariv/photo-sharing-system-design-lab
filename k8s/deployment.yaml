@@ -20,6 +20,13 @@ spec:
         - name: photoshare-api
           image: photoshare-api:v2
 
+          envFrom:
+            - configMapRef:
+                name: photoshare-config
+
+            - secretRef:
+                name: photoshare-secret
+
           imagePullPolicy: Never
 
           ports:
