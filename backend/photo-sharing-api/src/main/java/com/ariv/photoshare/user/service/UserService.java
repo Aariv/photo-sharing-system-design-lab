@@ -1,5 +1,6 @@
 package com.ariv.photoshare.user.service;
 
+import com.ariv.photoshare.common.exception.UserAlreadyExistsException;
 import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.post.repository.PostRepository;
 import com.ariv.photoshare.user.dto.ProfileResponse;
@@ -41,6 +42,10 @@ public class UserService {
         user.passwordHash = request.password();
 
         user.createdAt = Instant.now();
+
+        if(userRepository.existsByUsername(request.username())) {
+            throw new UserAlreadyExistsException(request.username());
+        }
 
         userRepository.persist(user);
 
