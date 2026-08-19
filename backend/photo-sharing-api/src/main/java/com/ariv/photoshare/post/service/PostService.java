@@ -8,12 +8,14 @@ import com.ariv.photoshare.post.dto.CreatePostResponse;
 import com.ariv.photoshare.post.dto.PostResponse;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
+import com.ariv.photoshare.timeline.service.CelebrityService;
 import com.ariv.photoshare.timeline.service.TimelineService;
 import com.ariv.photoshare.upload.service.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 @ApplicationScoped
 public class PostService {
+
+    private static final Logger LOG = Logger.getLogger(PostService.class);
 
     @Inject
     private PostRepository repository;
@@ -37,6 +41,9 @@ public class PostService {
     @Inject
     TimelineService timelineService;
 
+    @Inject
+    CelebrityService celebrityService;
+
     @Transactional
     public CreatePostResponse create(
             CreatePostRequest request) {
@@ -51,19 +58,36 @@ public class PostService {
 
         repository.persist(post);
 
-        List<FollowEntity> followers =
-                followRepository.findFollowersOf(post.userId);
+        boolean celebrity = celebrityService.isCelebrity(post.userId);
+        // Normal User: Fan-out-on-write to all followers' timelines
+        if(!celebrity) {
+            List<FollowEntity> followers =
+                    followRepository.findFollowersOf(post.userId);
 
-        for (FollowEntity follower : followers) {
+            for (FollowEntity follower : followers) {
 
-            timelineService.addEntry(
-                    follower.followerId,
-                    post.id,
-                    post.userId,
-                    post.createdAt
+                timelineService.addEntry(
+                        follower.followerId,
+                        post.id,
+                        post.userId,
+                        post.createdAt
+                );
+
+                cacheService.evictFeed(follower.followerId);
+            }
+        } else {
+            /*
+            * Celebrity user:
+            *
+            * Do not fan out this post into follower timelines.
+            * The post will be merged during feed read later.
+            *
+            * This prevents massive write amplification.
+            */
+            LOG.infof(
+                    "Skipping fan-out-on-write for celebrity author=%s",
+                    post.userId
             );
-
-            cacheService.evictFeed(follower.followerId);
         }
 
         cacheService.evictFeed(request.userId());
