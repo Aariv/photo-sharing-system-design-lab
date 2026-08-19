@@ -58,4 +58,16 @@ public class FollowRepository
                 userId
         ).list();
     }
+
+    public List<UUID> findFollowingIds(UUID userId) {
+
+        return find(
+                "followerId = ?1",
+                userId
+        )
+                .stream()
+                .map(f -> f.followingId)
+                .toList();
+    }
+
 }

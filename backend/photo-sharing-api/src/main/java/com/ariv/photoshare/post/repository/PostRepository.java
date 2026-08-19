@@ -75,4 +75,14 @@ public class PostRepository
                 postIds
         );
     }
+
+    public List<PostEntity> findPostsByAuthors(
+            List<UUID> authorIds) {
+
+        return list(
+                "userId in ?1 order by createdAt desc",
+                authorIds
+        );
+    }
+
 }

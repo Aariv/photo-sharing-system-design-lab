@@ -3,6 +3,7 @@ package com.ariv.photoshare.timeline.service;
 import com.ariv.photoshare.comment.repository.CommentRepository;
 import com.ariv.photoshare.feed.dto.FeedItemResponse;
 import com.ariv.photoshare.feed.dto.FeedResponse;
+import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.like.repository.LikeRepository;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
@@ -16,11 +17,9 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ApplicationScoped
 public class TimelineService {
@@ -39,6 +38,12 @@ public class TimelineService {
 
     @Inject
     TimelineRepository timelineRepository;
+
+    @Inject
+    CelebrityService celebrityService;
+
+    @Inject
+    FollowRepository followRepository;
 
     public FeedResponse getTimeline(
             UUID userId,
@@ -140,7 +145,7 @@ public class TimelineService {
                                 p -> p
                         ));
 
-        return entries.stream()
+        var timelineFeed =  entries.stream()
                 .map(entry -> {
 
                     PostEntity post =
@@ -160,6 +165,47 @@ public class TimelineService {
                     );
                 })
                 .filter(Objects::nonNull)
+                .toList();
+
+        List<UUID> celebrityAuthors =
+                celebrityAuthorsFollowedBy(userId);
+
+        List<PostEntity> celebrityPosts =
+                postRepository.findPostsByAuthors(
+                        celebrityAuthors);
+
+        List<TimelineFeedResponse> celebrityFeed =
+                celebrityPosts.stream()
+                        .map(post ->
+                                new TimelineFeedResponse(
+                                        post.id,
+                                        post.userId,
+                                        post.caption,
+                                        post.imageUrl,
+                                        post.createdAt
+                                ))
+                        .toList();
+
+        return Stream.concat(
+                        timelineFeed.stream(),
+                        celebrityFeed.stream()
+                )
+                .sorted(
+                        Comparator.comparing(
+                                TimelineFeedResponse::createdAt
+                        ).reversed()
+                )
+                .limit(50)
+                .toList();
+    }
+
+    private List<UUID> celebrityAuthorsFollowedBy(
+            UUID userId) {
+
+        return followRepository
+                .findFollowingIds(userId)
+                .stream()
+                .filter(celebrityService::isCelebrity)
                 .toList();
     }
 }
