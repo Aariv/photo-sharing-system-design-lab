@@ -96,8 +96,18 @@ http://localhost:8080/q/swagger-ui
 - Kafka Consumer Tracing
 - Notification Tracing
 
-✅ Phase-09 Kubernetes Foundations
+✅ Phase-09 Microservices Plan
+
+✅ Phase-10 Kubernetes Foundations
 - Containerization
 - Kubernetes Cluster
 - Kubernetes Deployment
 - Kubernetes Service
+
+✅ Phase-11 Timeline Service
+- Fan-Out on Read Analysis
+- Timeline Service Design
+- Timeline Table Implementation
+- Fan-Out on Write Feed Generation
+- Batch Post Loading Optimization
+
