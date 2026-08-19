@@ -1,11 +1,14 @@
 package com.ariv.photoshare.post.service;
 
 import com.ariv.photoshare.cache.service.CacheService;
+import com.ariv.photoshare.follow.entity.FollowEntity;
+import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.post.dto.CreatePostRequest;
 import com.ariv.photoshare.post.dto.CreatePostResponse;
 import com.ariv.photoshare.post.dto.PostResponse;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
+import com.ariv.photoshare.timeline.service.TimelineService;
 import com.ariv.photoshare.upload.service.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,6 +16,7 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -27,6 +31,12 @@ public class PostService {
     @Inject
     FileStorageService storageService;
 
+    @Inject
+    FollowRepository followRepository;
+
+    @Inject
+    TimelineService timelineService;
+
     @Transactional
     public CreatePostResponse create(
             CreatePostRequest request) {
@@ -40,6 +50,21 @@ public class PostService {
         post.createdAt = Instant.now();
 
         repository.persist(post);
+
+        List<FollowEntity> followers =
+                followRepository.findFollowersOf(post.userId);
+
+        for (FollowEntity follower : followers) {
+
+            timelineService.addEntry(
+                    follower.followerId,
+                    post.id,
+                    post.userId,
+                    post.createdAt
+            );
+
+            cacheService.evictFeed(follower.followerId);
+        }
 
         cacheService.evictFeed(request.userId());
 

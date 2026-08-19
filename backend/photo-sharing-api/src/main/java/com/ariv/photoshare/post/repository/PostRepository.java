@@ -67,4 +67,12 @@ public class PostRepository
                 userId
         );
     }
+
+    public List<PostEntity> findByIds(List<?> postIds) {
+
+        return list(
+                "id in ?1",
+                postIds
+        );
+    }
 }
