@@ -10,6 +10,7 @@ import java.util.UUID;
 public class LikeRepository
         implements PanacheRepositoryBase<LikeEntity, UUID> {
 
+    // Equivalent to: SELECT * FROM likes WHERE user_id = :userId AND post_id = :postId
     public LikeEntity findLike(
             UUID userId,
             UUID postId) {
@@ -21,6 +22,7 @@ public class LikeRepository
                 .firstResult();
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM likes WHERE post_id = :postId
     public long countLikes(UUID postId) {
 
         return count(
@@ -29,6 +31,7 @@ public class LikeRepository
         );
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM likes WHERE user_id = :userId AND post_id = :postId
     public boolean exists(
             UUID userId,
             UUID postId) {
@@ -40,6 +43,7 @@ public class LikeRepository
         ) > 0;
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM likes WHERE user_id = :userId AND post_id = :postId
     public boolean likedByUser(
         UUID userId,
         UUID postId)

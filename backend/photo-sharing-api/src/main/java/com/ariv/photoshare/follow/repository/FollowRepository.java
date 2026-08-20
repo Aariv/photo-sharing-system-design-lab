@@ -12,6 +12,7 @@ import java.util.UUID;
 public class FollowRepository
         implements PanacheRepositoryBase<FollowEntity, UUID> {
 
+    // Equivalent to: SELECT COUNT(*) FROM followers WHERE follower_id = :followerId AND following_id = :followingId
     public boolean exists(UUID followerId,
                           UUID followingId) {
 
@@ -22,6 +23,7 @@ public class FollowRepository
         ) > 0;
     }
 
+    // Equivalent to: SELECT * FROM followers WHERE follower_id = :followerId AND following_id = :followingId
     public FollowEntity findFollow(
             UUID followerId,
             UUID followingId) {
@@ -33,6 +35,7 @@ public class FollowRepository
         ).firstResult();
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM followers WHERE following_id = :userId
     public long countFollowers(
             UUID userId) {
 
@@ -42,6 +45,7 @@ public class FollowRepository
         );
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM followers WHERE follower_id = :userId
     public long countFollowing(
             UUID userId) {
 
@@ -51,6 +55,7 @@ public class FollowRepository
         );
     }
 
+    // Equivalent to: SELECT * FROM followers WHERE following_id = :userId
     public List<FollowEntity> findFollowersOf(UUID userId) {
 
         return find(
@@ -59,6 +64,7 @@ public class FollowRepository
         ).list();
     }
 
+    // Equivalent to: SELECT * FROM followers WHERE follower_id = :userId
     public List<UUID> findFollowingIds(UUID userId) {
 
         return find(

@@ -1,7 +1,6 @@
 package com.ariv.photoshare.timeline.resource;
 
 import com.ariv.photoshare.timeline.dto.TimelineFeedResponse;
-import com.ariv.photoshare.timeline.dto.TimelineResponse;
 import com.ariv.photoshare.timeline.service.TimelineService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;

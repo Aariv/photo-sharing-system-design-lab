@@ -84,7 +84,6 @@ public class LikeService {
     }
 
     public long countLikes(UUID postId) {
-
         return repository.countLikes(postId);
     }
 }

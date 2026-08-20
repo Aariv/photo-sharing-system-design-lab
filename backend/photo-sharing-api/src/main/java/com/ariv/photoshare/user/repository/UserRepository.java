@@ -10,6 +10,8 @@ import java.util.UUID;
 
 @ApplicationScoped
 public class UserRepository implements PanacheRepositoryBase<UserEntity, UUID> {
+    
+    // Equivalent to: SELECT * FROM users WHERE username = :username
     public boolean existsByUsername(String username) {
         return find("username", username).firstResultOptional().isPresent();
     }

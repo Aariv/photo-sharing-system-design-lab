@@ -12,6 +12,7 @@ import java.util.UUID;
 public class TimelineRepository
         implements PanacheRepositoryBase<TimelineEntry, TimelineId> {
 
+        // Equivalent to: SELECT * FROM timeline WHERE user_id = :userId ORDER BY created_at DESC
         public List<TimelineEntry> findByUserId(UUID userId) {
             return find(
                     "id.userId = ?1 order by createdAt desc",

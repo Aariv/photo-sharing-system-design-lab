@@ -11,6 +11,7 @@ import java.util.UUID;
 public class CommentRepository
         implements PanacheRepositoryBase<CommentEntity, UUID> {
 
+    // Equivalent to: SELECT * FROM comments WHERE post_id = :postId ORDER BY created_at DESC
     public List<CommentEntity> findByPost(
             UUID postId) {
 
@@ -20,6 +21,7 @@ public class CommentRepository
         ).list();
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM comments WHERE post_id = :postId
     public long countComments(
             UUID postId) {
 

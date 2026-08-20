@@ -13,6 +13,9 @@ import java.util.UUID;
 public class PostRepository
         implements PanacheRepositoryBase<PostEntity, UUID> {
 
+    // Equivalent to:
+    // SELECT * FROM posts p JOIN followers f ON p.user_id = f.following_id
+    // WHERE f.follower_id = :userId ORDER BY p.created_at DESC
     @WithSpan("feed-query")
     public List<PostEntity> findFeed(
             UUID userId,
@@ -47,6 +50,7 @@ public class PostRepository
 //                .list();
 //    }
 
+    // Equivalent to: SELECT * FROM posts WHERE user_id = :userId ORDER BY created_at DESC
     public List<PostEntity> findTimeline(
             UUID userId,
             int page,
@@ -60,6 +64,7 @@ public class PostRepository
                 .list();
     }
 
+    // Equivalent to: SELECT COUNT(*) FROM posts WHERE user_id = :userId
     public long countPosts(UUID userId) {
 
         return count(
@@ -68,6 +73,7 @@ public class PostRepository
         );
     }
 
+    // Equivalent to: SELECT * FROM posts WHERE id IN :postIds
     public List<PostEntity> findByIds(List<?> postIds) {
 
         return list(
@@ -76,6 +82,7 @@ public class PostRepository
         );
     }
 
+    // Equivalent to: SELECT * FROM posts WHERE user_id IN :authorIds ORDER BY created_at DESC
     public List<PostEntity> findPostsByAuthors(
             List<UUID> authorIds) {
 

@@ -13,6 +13,7 @@ public class NotificationRepository
                 NotificationEntity,
                 UUID> {
 
+        // Equivalent to: SELECT * FROM notifications WHERE user_id = :userId ORDER BY created_at DESC
         public List<NotificationEntity> findByUser(UUID userId) {
 
             return find(
