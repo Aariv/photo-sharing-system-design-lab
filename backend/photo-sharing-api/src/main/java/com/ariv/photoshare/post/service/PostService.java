@@ -1,6 +1,8 @@
 package com.ariv.photoshare.post.service;
 
 import com.ariv.photoshare.cache.service.CacheService;
+import com.ariv.photoshare.events.PostCreatedEvent;
+import com.ariv.photoshare.events.PostCreatedEventPublisher;
 import com.ariv.photoshare.follow.entity.FollowEntity;
 import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.post.dto.CreatePostRequest;
@@ -44,8 +46,12 @@ public class PostService {
     @Inject
     CelebrityService celebrityService;
 
+    @Inject
+    PostCreatedEventPublisher postCreatedEventPublisher;
+
     @Transactional
-    public CreatePostResponse create(
+    @Deprecated
+    public CreatePostResponse create1(
             CreatePostRequest request) {
 
         PostEntity post = new PostEntity();
@@ -90,6 +96,33 @@ public class PostService {
             );
         }
 
+        cacheService.evictFeed(request.userId());
+
+        return new CreatePostResponse(post.id);
+    }
+
+    @Transactional
+    public CreatePostResponse create(
+            CreatePostRequest request) {
+
+        PostEntity post = new PostEntity();
+
+        post.id = UUID.randomUUID();
+        post.userId = request.userId();
+        post.imageUrl = request.imageUrl();
+        post.caption = request.caption();
+        post.createdAt = Instant.now();
+
+        repository.persist(post);
+
+        PostCreatedEvent event = new PostCreatedEvent(
+                UUID.randomUUID(),
+                post.id,
+                post.userId,
+                post.createdAt
+        );
+
+        postCreatedEventPublisher.publish(event);
         cacheService.evictFeed(request.userId());
 
         return new CreatePostResponse(post.id);

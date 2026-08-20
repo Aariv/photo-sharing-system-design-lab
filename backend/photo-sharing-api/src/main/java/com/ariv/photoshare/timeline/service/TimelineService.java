@@ -111,6 +111,13 @@ public class TimelineService {
             UUID authorId,
             Instant createdAt) {
 
+        TimelineId timelineId = new TimelineId(userId, postId);
+
+        if(timelineRepository.findById(timelineId) != null) {
+            return;
+        }
+
+
         TimelineEntry entry =
                 new TimelineEntry(
                         new TimelineId(userId, postId),
