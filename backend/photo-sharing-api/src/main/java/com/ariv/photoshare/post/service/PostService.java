@@ -5,6 +5,7 @@ import com.ariv.photoshare.events.PostCreatedEvent;
 import com.ariv.photoshare.events.PostCreatedEventPublisher;
 import com.ariv.photoshare.follow.entity.FollowEntity;
 import com.ariv.photoshare.follow.repository.FollowRepository;
+import com.ariv.photoshare.outbox.service.OutboxService;
 import com.ariv.photoshare.post.dto.CreatePostRequest;
 import com.ariv.photoshare.post.dto.CreatePostResponse;
 import com.ariv.photoshare.post.dto.PostResponse;
@@ -48,6 +49,9 @@ public class PostService {
 
     @Inject
     PostCreatedEventPublisher postCreatedEventPublisher;
+
+    @Inject
+    OutboxService outboxService;
 
     @Transactional
     @Deprecated
@@ -121,8 +125,11 @@ public class PostService {
                 post.userId,
                 post.createdAt
         );
+// Dual Problem Fix
+//        postCreatedEventPublisher.publish(event);
 
-        postCreatedEventPublisher.publish(event);
+        outboxService.savePostCreatedEvent(event);
+
         cacheService.evictFeed(request.userId());
 
         return new CreatePostResponse(post.id);
