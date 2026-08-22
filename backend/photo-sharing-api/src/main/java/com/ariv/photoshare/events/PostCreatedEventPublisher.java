@@ -6,6 +6,8 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.jboss.logging.Logger;
 
+import java.util.concurrent.CompletionStage;
+
 @ApplicationScoped
 public class PostCreatedEventPublisher {
 
@@ -16,7 +18,7 @@ public class PostCreatedEventPublisher {
     @Channel("post-created")
     Emitter<PostCreatedEvent> emitter;
 
-    public void publish(PostCreatedEvent event) {
+    public void publish1(PostCreatedEvent event) {
 
         emitter.send(event);
 
@@ -26,5 +28,11 @@ public class PostCreatedEventPublisher {
                 event.postId(),
                 event.authorId()
         );
+    }
+
+    public CompletionStage<Void> publish(
+            PostCreatedEvent event) {
+
+        return emitter.send(event);
     }
 }

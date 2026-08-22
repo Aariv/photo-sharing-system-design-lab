@@ -11,6 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
+import java.time.Instant;
 import java.util.List;
 
 @ApplicationScoped
@@ -19,6 +20,10 @@ public class OutboxPublisher {
     private static final Logger LOG =
             Logger.getLogger(
                     OutboxPublisher.class);
+
+    private static final int MAX_RETRIES = 10;
+
+    private static final long BASE_DELAY_SECONDS = 30;
 
     @Inject
     OutboxRepository repository;
@@ -36,6 +41,37 @@ public class OutboxPublisher {
         List<OutboxEventEntity> events =
                 repository.findPending(100);
 
+//        for (OutboxEventEntity event : events) {
+//
+//            try {
+//
+//                PostCreatedEvent postEvent =
+//                        objectMapper.readValue(
+//                                event.payload,
+//                                PostCreatedEvent.class);
+//
+//                publisher.publish(postEvent);
+//
+//                repository.markProcessed(
+//                        event.id);
+//
+//                LOG.infof(
+//                        "Processed outbox event=%s",
+//                        event.id);
+//
+//            } catch (Exception exception) {
+//
+//                repository.markFailed(
+//                        event.id,
+//                        exception.getMessage());
+//
+//                LOG.errorf(
+//                        exception,
+//                        "Failed outbox event=%s",
+//                        event.id);
+//            }
+//        }
+
         for (OutboxEventEntity event : events) {
 
             try {
@@ -45,26 +81,67 @@ public class OutboxPublisher {
                                 event.payload,
                                 PostCreatedEvent.class);
 
-                publisher.publish(postEvent);
+//                publisher.publish(postEvent);
 
-                repository.markProcessed(
-                        event.id);
+                publisher.publish(postEvent)
+                        .toCompletableFuture()
+                        .join();
+
+                repository.markProcessed(event.id);
 
                 LOG.infof(
-                        "Processed outbox event=%s",
+                        "Processed event=%s",
                         event.id);
 
             } catch (Exception exception) {
 
-                repository.markFailed(
-                        event.id,
-                        exception.getMessage());
+                int nextAttempt =
+                        event.attempts + 1;
 
-                LOG.errorf(
+                if (nextAttempt > MAX_RETRIES) {
+
+                    repository.markDead(
+                            event.id,
+                            nextAttempt,
+                            exception.getMessage());
+
+                    LOG.errorf(
+                            exception,
+                            "Event moved to DEAD queue id=%s",
+                            event.id);
+
+                    continue;
+                }
+
+                long delaySeconds =
+                        calculateRetryDelay(
+                                nextAttempt);
+
+                Instant retryAt = Instant.now().plusSeconds(delaySeconds);
+
+                repository.scheduleRetry(
+                        event.id,
+                        nextAttempt,
+                        exception.getMessage(),
+                        retryAt);
+
+                LOG.warnf(
                         exception,
-                        "Failed outbox event=%s",
-                        event.id);
+                        "Retry scheduled id=%s attempt=%d retryAt=%s",
+                        event.id,
+                        nextAttempt,
+                        retryAt);
             }
         }
+    }
+
+    private long calculateRetryDelay(
+            int attempts) {
+
+        long delay =
+                (long) Math.pow(2, attempts - 1)
+                        * BASE_DELAY_SECONDS;
+
+        return Math.min(delay, 3600);
     }
 }
