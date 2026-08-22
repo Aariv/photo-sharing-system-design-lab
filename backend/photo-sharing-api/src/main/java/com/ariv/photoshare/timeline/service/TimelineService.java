@@ -7,6 +7,8 @@ import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.like.repository.LikeRepository;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
+import com.ariv.photoshare.ranking.dto.FeedScore;
+import com.ariv.photoshare.ranking.service.RankingService;
 import com.ariv.photoshare.timeline.dto.TimelineFeedResponse;
 import com.ariv.photoshare.timeline.entity.TimelineEntry;
 import com.ariv.photoshare.timeline.entity.TimelineId;
@@ -44,6 +46,9 @@ public class TimelineService {
 
     @Inject
     FollowRepository followRepository;
+
+    @Inject
+    RankingService rankingService;
 
     public FeedResponse getTimeline(
             UUID userId,
@@ -193,15 +198,74 @@ public class TimelineService {
                                 ))
                         .toList();
 
-        return Stream.concat(
+//        return Stream.concat(
+//                        timelineFeed.stream(),
+//                        celebrityFeed.stream()
+//                )
+//                .sorted(
+//                        Comparator.comparing(
+//                                TimelineFeedResponse::createdAt
+//                        ).reversed()
+//                )
+//                .limit(50)
+//                .toList();
+
+        List<TimelineFeedResponse> mergedFeed =
+                Stream.concat(
                         timelineFeed.stream(),
                         celebrityFeed.stream()
-                )
+                ).toList();
+
+        List<UUID> mPostIds =
+                mergedFeed.stream()
+                        .map(TimelineFeedResponse::postId)
+                        .toList();
+
+        Map<UUID, Long> likeCounts =
+                likeRepository.countByPostIds(
+                        mPostIds);
+
+        Map<UUID, Long> commentCounts =
+                commentRepository.countByPostIds(
+                        mPostIds);
+
+        List<FeedScore> scoredFeed =
+                mergedFeed.stream()
+                        .map(post -> {
+
+                            long likes =
+                                    likeCounts.getOrDefault(
+                                            post.postId(),
+                                            0L
+                                    );
+
+                            long comments =
+                                    commentCounts.getOrDefault(
+                                            post.postId(),
+                                            0L
+                                    );
+
+                            double score =
+                                    rankingService.calculateScore(
+                                            post.createdAt(),
+                                            likes,
+                                            comments
+                                    );
+
+                            return new FeedScore(
+                                    post,
+                                    score
+                            );
+                        })
+                        .toList();
+
+        return scoredFeed.stream()
                 .sorted(
                         Comparator.comparing(
-                                TimelineFeedResponse::createdAt
+                                FeedScore::score
                         ).reversed()
                 )
+                .map(FeedScore::post)
                 .limit(50)
                 .toList();
     }
