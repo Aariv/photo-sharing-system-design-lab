@@ -22,7 +22,6 @@ public class SearchResource {
     public List<SearchResponse> search(
             @QueryParam("q")
             String query) {
-
         return searchService.search(query);
     }
 }
