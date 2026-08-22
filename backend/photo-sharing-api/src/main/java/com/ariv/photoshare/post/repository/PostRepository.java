@@ -92,4 +92,21 @@ public class PostRepository
         );
     }
 
+    // Equivalent to: SELECT * FROM posts WHERE lower(caption) LIKE lower(:query) ORDER BY created_at DESC LIMIT :limit
+    public List<PostEntity> searchByCaption(
+            String query,
+            int limit) {
+
+        return find(
+                """
+                lower(caption)
+                like lower(?1)
+                order by createdAt desc
+                """,
+                "%" + query + "%"
+        )
+                .page(0, limit)
+                .list();
+    }
+
 }
