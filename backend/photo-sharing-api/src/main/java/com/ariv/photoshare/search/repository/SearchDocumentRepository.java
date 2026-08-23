@@ -12,19 +12,43 @@ public class SearchDocumentRepository
         implements PanacheRepositoryBase<SearchDocumentEntity, UUID> {
 
     // Equivalent to: SELECT * FROM search_documents WHERE lower(search_text) LIKE lower(:query) ORDER BY created_at DESC LIMIT :limit
+//    public List<SearchDocumentEntity> search(
+//            String query,
+//            int limit) {
+//
+//        return find(
+//                """
+//                lower(searchText)
+//                like lower(?1)
+//                order by createdAt desc
+//                """,
+//                "%" + query + "%"
+//        )
+//        .page(0, limit)
+//        .list();
+//    }
+
     public List<SearchDocumentEntity> search(
             String query,
             int limit) {
 
-        return find(
-                """
-                lower(searchText)
-                like lower(?1)
-                order by createdAt desc
-                """,
-                "%" + query + "%"
-        )
-        .page(0, limit)
-        .list();
+        return getEntityManager()
+                .createNativeQuery(
+                        """
+                        SELECT *
+                        FROM search_documents
+                        WHERE search_vector
+                              @@ plainto_tsquery(:query)
+                        ORDER BY created_at DESC
+                        LIMIT :limit
+                        """,
+                        SearchDocumentEntity.class)
+                .setParameter(
+                        "query",
+                        query)
+                .setParameter(
+                        "limit",
+                        limit)
+                .getResultList();
     }
 }
