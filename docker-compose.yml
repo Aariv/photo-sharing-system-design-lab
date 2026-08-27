@@ -1,20 +1,55 @@
 services:
 
-  postgres:
+#  postgres:
+#    image: postgres:16
+#
+#    container_name: photoshare-postgres
+#
+#    environment:
+#      POSTGRES_DB: photoshare
+#      POSTGRES_USER: admin
+#      POSTGRES_PASSWORD: admin
+#
+#    ports:
+#      - "5432:5432"
+#
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
+
+  postgres-primary:
     image: postgres:16
-
-    container_name: photoshare-postgres
-
+    container_name: postgres-primary
     environment:
       POSTGRES_DB: photoshare
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-
     ports:
-      - "5432:5432"
-
+      - "55432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - primary-data:/var/lib/postgresql/data
+      - ./primary/init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+
+  postgres-replica:
+    image: postgres:16
+    container_name: postgres-replica
+    environment:
+      POSTGRES_DB: photoshare
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      PGPASSWORD: replicator
+    ports:
+      - "55433:5432"
+    volumes:
+      - replica-data:/var/lib/postgresql/data
+      - ./replica/init-replica.sh:/init-replica.sh
+    depends_on:
+      - postgres-primary
+    entrypoint: [ "/bin/bash", "/init-replica.sh" ]
 
   redis:
     image: redis:7
@@ -96,4 +131,5 @@ services:
       - "4318:4318"
 
 volumes:
-  postgres-data:
+  primary-data:
+  replica-data:
