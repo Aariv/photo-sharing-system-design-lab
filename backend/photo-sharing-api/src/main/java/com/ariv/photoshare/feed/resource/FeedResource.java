@@ -23,6 +23,8 @@ public class FeedResource {
     HomeFeedService homeFeedService;
 
     @GET
+    @Path("/oldFeed")
+    @Deprecated
     public FeedResponse getFeed(
 
             @QueryParam("userId")
