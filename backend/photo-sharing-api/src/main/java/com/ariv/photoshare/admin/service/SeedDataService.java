@@ -6,7 +6,7 @@ import com.ariv.photoshare.comment.repository.CommentRepository;
 import com.ariv.photoshare.follow.entity.FollowEntity;
 import com.ariv.photoshare.follow.repository.FollowRepository;
 import com.ariv.photoshare.like.entity.LikeEntity;
-import com.ariv.photoshare.like.repository.LikeRepository;
+import com.ariv.photoshare.like.repository.LikeRepositoryV1;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
 import com.ariv.photoshare.user.entity.UserEntity;
@@ -31,7 +31,7 @@ public class SeedDataService {
     FollowRepository followRepository;
 
     @Inject
-    LikeRepository likeRepository;
+    LikeRepositoryV1 likeRepository;
 
     @Inject
     CommentRepository commentRepository;

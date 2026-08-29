@@ -4,7 +4,7 @@ import com.ariv.photoshare.comment.repository.CommentRepository;
 import com.ariv.photoshare.feed.dto.FeedItemResponse;
 import com.ariv.photoshare.feed.dto.FeedResponse;
 import com.ariv.photoshare.follow.repository.FollowRepository;
-import com.ariv.photoshare.like.repository.LikeRepository;
+import com.ariv.photoshare.like.repository.LikeRepositoryV1;
 import com.ariv.photoshare.post.entity.PostEntity;
 import com.ariv.photoshare.post.repository.PostRepository;
 import com.ariv.photoshare.ranking.dto.FeedScore;
@@ -16,7 +16,6 @@ import com.ariv.photoshare.timeline.repository.TimelineRepository;
 import com.ariv.photoshare.upload.service.FileStorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -30,7 +29,7 @@ public class TimelineService {
     PostRepository postRepository;
 
     @Inject
-    LikeRepository likeRepository;
+    LikeRepositoryV1 likeRepository;
 
     @Inject
     CommentRepository commentRepository;

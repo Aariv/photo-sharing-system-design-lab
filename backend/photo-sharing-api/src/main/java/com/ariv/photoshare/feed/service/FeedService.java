@@ -4,7 +4,7 @@ import com.ariv.photoshare.cache.CacheKeys;
 import com.ariv.photoshare.comment.repository.CommentRepository;
 import com.ariv.photoshare.feed.dto.FeedItemResponse;
 import com.ariv.photoshare.feed.dto.FeedResponse;
-import com.ariv.photoshare.like.repository.LikeRepository;
+import com.ariv.photoshare.like.repository.LikeRepositoryV1;
 import com.ariv.photoshare.metrics.FeedMetrics;
 import com.ariv.photoshare.post.repository.PostRepository;
 
@@ -25,7 +25,7 @@ public class FeedService {
     PostRepository postRepository;
 
     @Inject
-    LikeRepository likeRepository;
+    LikeRepositoryV1 likeRepository;
 
     @Inject
     CommentRepository commentRepository;

@@ -1,16 +1,13 @@
 package com.ariv.photoshare.like.service;
 
-import com.ariv.photoshare.cache.service.CacheService;
-import com.ariv.photoshare.events.LikeEventProducer;
 import com.ariv.photoshare.events.PostLikedEvent;
-import com.ariv.photoshare.like.dto.LikeResponse;
-import com.ariv.photoshare.like.entity.LikeEntity;
+import com.ariv.photoshare.events.PostUnlikedEvent;
+import com.ariv.photoshare.like.dto.LikeCommandResponse;
 import com.ariv.photoshare.like.repository.LikeRepository;
+import com.ariv.photoshare.outbox.service.OutboxService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.NotFoundException;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -18,49 +15,62 @@ import java.util.UUID;
 @ApplicationScoped
 public class LikeService {
 
+    public static final String AGGREGATE_TYPE = "POST";
+    public static final String POST_LIKED = "POST_LIKED";
+    public static final String POST_UNLIKED = "POST_UNLIKED";
+
     @Inject
     LikeRepository repository;
 
     @Inject
-    CacheService cacheService;
-
-    @Inject
-    LikeEventProducer likeEventProducer;
+    OutboxService outboxService;
 
     @Transactional
-    public LikeResponse like(
+    public LikeCommandResponse like(
             UUID userId,
             UUID postId) {
 
-        if (repository.exists(userId, postId)) {
-            throw new BadRequestException(
-                    "Post already liked");
+        UUID likeId = UUID.randomUUID();
+
+        boolean created =
+                repository.insertIfAbsent(
+                        likeId,
+                        userId,
+                        postId
+                );
+
+        /*
+         * Only create the outbox event if this request
+         * actually created the authoritative like row.
+         *
+         * Duplicate API retries must not create
+         * duplicate PostLikedEvent records.
+         */
+        if (created) {
+            UUID eventId = UUID.randomUUID();
+            Instant occurredAt = Instant.now();
+
+            PostLikedEvent event =
+                    new PostLikedEvent(
+                            eventId,
+                            postId,
+                            userId,
+                            occurredAt
+                    );
+
+            outboxService.save(
+                    eventId,
+                    AGGREGATE_TYPE,
+                    postId,
+                    POST_LIKED,
+                    event
+            );
         }
 
-        LikeEntity entity = new LikeEntity();
-
-        entity.id = UUID.randomUUID();
-        entity.userId = userId;
-        entity.postId = postId;
-        entity.createdAt = Instant.now();
-
-        repository.persist(entity);
-
-        cacheService.evictFeed(userId);
-
-        likeEventProducer.publish(
-
-                new PostLikedEvent(
-                        postId,
-                        userId,
-                        Instant.now()
-                )
-        );
-
-        return new LikeResponse(
-                entity.id,
-                entity.userId,
-                entity.postId
+        return new LikeCommandResponse(
+                postId,
+                userId,
+                created
         );
     }
 
@@ -69,21 +79,52 @@ public class LikeService {
             UUID userId,
             UUID postId) {
 
-        LikeEntity entity =
-                repository.findLike(
+        boolean deleted =
+                repository.deleteIfPresent(
                         userId,
-                        postId);
+                        postId
+                );
 
-        if (entity == null) {
-            throw new NotFoundException();
+        /*
+         * DELETE is idempotent.
+         * If the row already does not exist,
+         * the requested final state is satisfied.
+         */
+        if (!deleted) {
+            return;
         }
 
-        repository.delete(entity);
-        // Cache Invalidation
-        cacheService.evictFeed(userId);
+        UUID eventId = UUID.randomUUID();
+        Instant occurredAt = Instant.now();
+
+        PostUnlikedEvent event =
+                new PostUnlikedEvent(
+                        eventId,
+                        postId,
+                        userId,
+                        occurredAt
+                );
+
+        outboxService.save(
+                eventId,
+                AGGREGATE_TYPE,
+                postId,
+                POST_UNLIKED,
+                event
+        );
     }
 
     public long countLikes(UUID postId) {
         return repository.countLikes(postId);
+    }
+
+    public boolean likedByUser(
+            UUID userId,
+            UUID postId) {
+
+        return repository.likedByUser(
+                userId,
+                postId
+        );
     }
 }

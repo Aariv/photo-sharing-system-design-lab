@@ -24,10 +24,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import static com.ariv.photoshare.like.service.LikeService.AGGREGATE_TYPE;
+import static com.ariv.photoshare.like.service.LikeService.POST_LIKED;
+
 @ApplicationScoped
 public class PostService {
 
     private static final Logger LOG = Logger.getLogger(PostService.class);
+    private static final String POST_CREATED = "POST_CREATED";
 
     @Inject
     private PostRepository repository;
@@ -127,8 +131,12 @@ public class PostService {
         );
 // Dual Problem Fix
 //        postCreatedEventPublisher.publish(event);
-
-        outboxService.savePostCreatedEvent(event);
+        UUID eventId = UUID.randomUUID();
+        outboxService.save(eventId,
+                AGGREGATE_TYPE,
+                post.id,
+                POST_CREATED,
+                event);
 
         cacheService.evictFeed(request.userId());
 

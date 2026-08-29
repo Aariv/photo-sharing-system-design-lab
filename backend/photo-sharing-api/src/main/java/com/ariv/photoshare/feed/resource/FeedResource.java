@@ -23,6 +23,7 @@ public class FeedResource {
     HomeFeedService homeFeedService;
 
     @GET
+    @Path("/v1")
     public FeedResponse getFeed(
 
             @QueryParam("userId")

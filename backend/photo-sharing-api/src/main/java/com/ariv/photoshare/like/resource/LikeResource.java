@@ -1,61 +1,74 @@
 package com.ariv.photoshare.like.resource;
 
-import com.ariv.photoshare.like.dto.LikeRequest;
-import com.ariv.photoshare.like.dto.LikeResponse;
+import com.ariv.photoshare.like.dto.LikeCommandResponse;
 import com.ariv.photoshare.like.service.LikeService;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.UUID;
 
 @Path("/api/v1/posts")
-@Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class LikeResource {
 
     @Inject
     LikeService likeService;
 
-    @POST
-    @Path("/{postId}/like")
+    @PUT
+    @Path("/{postId}/likes/{userId}")
     @WithSpan("like-post")
-    public LikeResponse like(
-            @PathParam("postId")
-            UUID postId,
+    public Response like(
+            @PathParam("postId") UUID postId,
+            @PathParam("userId") UUID userId) {
 
-            LikeRequest request) {
+        LikeCommandResponse result =
+                likeService.like(userId, postId);
 
-        return likeService.like(
-                request.userId(),
-                postId);
+        if (result.created()) {
+            return Response.status(
+                            Response.Status.CREATED
+                    )
+                    .entity(result)
+                    .build();
+        }
+
+        return Response.ok(result).build();
     }
 
     @DELETE
-    @Path("/{postId}/like")
+    @Path("/{postId}/likes/{userId}")
+    @WithSpan("unlike-post")
     public Response unlike(
-            @PathParam("postId")
-            UUID postId,
+            @PathParam("postId") UUID postId,
+            @PathParam("userId") UUID userId) {
 
-            @QueryParam("userId")
-            UUID userId) {
-
-        likeService.unlike(
-                userId,
-                postId);
+        likeService.unlike(userId, postId);
 
         return Response.noContent().build();
     }
 
     @GET
     @Path("/{postId}/likes/count")
-    public long count(
-            @PathParam("postId")
-            UUID postId) {
+    public LikeCountResponse count(
+            @PathParam("postId") UUID postId) {
 
-        return likeService.countLikes(postId);
+        return new LikeCountResponse(
+                postId,
+                likeService.countLikes(postId)
+        );
+    }
+
+    public record LikeCountResponse(
+            UUID postId,
+            long likeCount
+    ) {
     }
 }

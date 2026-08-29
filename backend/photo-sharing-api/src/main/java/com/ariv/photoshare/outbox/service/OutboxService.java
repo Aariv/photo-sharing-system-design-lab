@@ -1,6 +1,5 @@
 package com.ariv.photoshare.outbox.service;
 
-import com.ariv.photoshare.events.PostCreatedEvent;
 import com.ariv.photoshare.outbox.entity.OutboxEventEntity;
 import com.ariv.photoshare.outbox.entity.OutboxStatus;
 import com.ariv.photoshare.outbox.repository.OutboxRepository;
@@ -10,12 +9,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @ApplicationScoped
 public class OutboxService {
-
-    private static final String POST_AGGREGATE = "POST";
-    private static final String POST_CREATED_EVENT = "POST_CREATED";
 
     @Inject
     OutboxRepository outboxRepository;
@@ -23,29 +20,37 @@ public class OutboxService {
     @Inject
     ObjectMapper objectMapper;
 
-    public void savePostCreatedEvent(PostCreatedEvent event) {
+    public void save(
+            UUID eventId,
+            String aggregateType,
+            UUID aggregateId,
+            String eventType,
+            Object payload) {
 
-        OutboxEventEntity outboxEvent = new OutboxEventEntity();
+        OutboxEventEntity entity =
+                new OutboxEventEntity();
 
-        outboxEvent.id = event.eventId();
-        outboxEvent.aggregateType = POST_AGGREGATE;
-        outboxEvent.aggregateId = event.postId();
-        outboxEvent.eventType = POST_CREATED_EVENT;
-        outboxEvent.payload = serialize(event);
-        outboxEvent.status = OutboxStatus.PENDING;
-        outboxEvent.attempts = 0;
-        outboxEvent.createdAt = Instant.now();
+        entity.id = eventId;
+        entity.aggregateType = aggregateType;
+        entity.aggregateId = aggregateId;
+        entity.eventType = eventType;
+        entity.payload = serialize(payload);
+        entity.status = OutboxStatus.PENDING;
+        entity.attempts = 0;
+        entity.createdAt = Instant.now();
 
-        outboxRepository.persist(outboxEvent);
+        outboxRepository.persist(entity);
     }
 
-    private String serialize(PostCreatedEvent event) {
+    private String serialize(Object payload) {
 
         try {
-            return objectMapper.writeValueAsString(event);
+            return objectMapper.writeValueAsString(
+                    payload
+            );
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException(
-                    "Unable to serialize PostCreatedEvent",
+                    "Unable to serialize outbox event",
                     exception
             );
         }
