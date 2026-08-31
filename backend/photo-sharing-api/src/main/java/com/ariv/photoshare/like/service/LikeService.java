@@ -5,6 +5,7 @@ import com.ariv.photoshare.events.PostUnlikedEvent;
 import com.ariv.photoshare.like.dto.LikeCommandResponse;
 import com.ariv.photoshare.like.repository.LikeRepository;
 import com.ariv.photoshare.outbox.service.OutboxService;
+import com.ariv.photoshare.post.repository.PostRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -24,6 +25,9 @@ public class LikeService {
 
     @Inject
     OutboxService outboxService;
+
+    @Inject
+    PostRepository postRepository;
 
     @Transactional
     public LikeCommandResponse like(
@@ -47,6 +51,11 @@ public class LikeService {
          * duplicate PostLikedEvent records.
          */
         if (created) {
+
+            postRepository.incrementLikeCount(postId);
+
+            // Outbox event
+
             UUID eventId = UUID.randomUUID();
             Instant occurredAt = Instant.now();
 
@@ -94,6 +103,10 @@ public class LikeService {
             return;
         }
 
+        postRepository.decrementLikeCount(postId);
+
+        // Outbox Event
+
         UUID eventId = UUID.randomUUID();
         Instant occurredAt = Instant.now();
 
@@ -115,7 +128,7 @@ public class LikeService {
     }
 
     public long countLikes(UUID postId) {
-        return repository.countLikes(postId);
+        return postRepository.getLikeCount(postId);
     }
 
     public boolean likedByUser(

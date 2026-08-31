@@ -5,6 +5,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +108,61 @@ public class PostRepository
         )
                 .page(0, limit)
                 .list();
+    }
+
+    @Transactional
+    public void incrementLikeCount(
+            UUID postId) {
+
+        getEntityManager()
+                .createNativeQuery("""
+                    UPDATE posts
+                    SET like_count =
+                            like_count + 1
+                    WHERE id = :postId
+                """)
+                .setParameter(
+                        "postId",
+                        postId
+                )
+                .executeUpdate();
+    }
+
+    @Transactional
+    public void decrementLikeCount(
+            UUID postId) {
+
+        getEntityManager()
+                .createNativeQuery("""
+                    UPDATE posts
+                    SET like_count =
+                            like_count - 1
+                    WHERE id = :postId
+                """)
+                .setParameter(
+                        "postId",
+                        postId
+                )
+                .executeUpdate();
+    }
+
+    public long getLikeCount(
+            UUID postId) {
+
+        Object value =
+                getEntityManager()
+                        .createNativeQuery("""
+                            SELECT like_count
+                            FROM posts
+                            WHERE id = :postId
+                        """)
+                        .setParameter(
+                                "postId",
+                                postId
+                        )
+                        .getSingleResult();
+
+        return ((Number) value).longValue();
     }
 
 }
